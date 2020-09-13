@@ -55,7 +55,7 @@ class FormatCode {
 			$this->parsePath($path)
 		)->exclude([
 			'node_modules',
-		])->files()->name('*.php');
+		])->files()->name(['*.stub', '*.php']);
 
 		foreach ($files as $file) {
 			$this->format($file);
