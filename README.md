@@ -102,7 +102,7 @@ class User extends Authenticatable
 }
 ```
 
-Note that the code has the standard Laravel look and the indexing is with spaces.
+Note that the code has the standard Laravel look and the indentation is with spaces.
 
 ### After
 
