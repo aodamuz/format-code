@@ -51,17 +51,17 @@ class FormatCode {
 	 * @return int
 	 */
 	public function scan($path) {
+		$count = 0;
 		$files = $this->finder->in(
 			$this->parsePath($path)
 		)->exclude([
 			'node_modules',
 		])->files()->name(['*.stub', '*.php']);
 
-		foreach ($files as $file) {
-			$this->format($file);
-		}
+		foreach ($files as $file)
+			$count += $this->format($file);
 
-		return $files->count();
+		return $count;
 	}
 
 	/**
@@ -72,13 +72,13 @@ class FormatCode {
 	 * @return int
 	 */
 	public function file($path) {
+		$count = 0;
 		$files = (array) $this->parsePath($path);
 
-		foreach ($files as $file) {
-			$this->format($file);
-		}
+		foreach ($files as $file)
+			$count += $this->format($file);
 
-		return count($files);
+		return $count;
 	}
 
 	/**
@@ -89,9 +89,11 @@ class FormatCode {
 	 * @return mixed
 	 */
 	protected function format($path) {
-		if ($path instanceof SplFileInfo) {
+		if ($path instanceof SplFileInfo)
 			$path = $path->getRealPath();
-		}
+
+		if (!Str::contains(file($path)[0], '<?php'))
+			return;
 
 		$code = file_get_contents($path);
 
@@ -100,11 +102,10 @@ class FormatCode {
 		$code = str_replace(["\n{\n", "\n\t{\n", "\r\n{\r\n", "\r\n\t{\r\n"], " {\n", $code);
 		$code = str_replace(' array()', " []", $code);
 
-		if (preg_match('/\nuse (.*?);\n/', $code)) {
+		if (preg_match('/\nuse (.*?);\n/', $code))
 			$code = $this->sortImportsByLength($code);
-		}
 
-		return file_put_contents($path, $code);
+		return file_put_contents($path, $code) > 0 ? 1 : 0;
 	}
 
 	/**
@@ -122,13 +123,11 @@ class FormatCode {
 				return strlen($a) - strlen($b);
 			});
 
-			foreach ($uses as $key => $value) {
+			foreach ($uses as $key => $value)
 				$code = str_replace("use {$uses[$key]};", sprintf('[[[use:%d]]]', $key), $code);
-			}
 
-			foreach ($sorted as $key => $value) {
+			foreach ($sorted as $key => $value)
 				$code = str_replace(sprintf('[[[use:%d]]]', $key), "use {$value};", $code);
-			}
 		}
 
 		return $code;
