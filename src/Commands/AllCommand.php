@@ -2,9 +2,6 @@
 
 namespace Aodamuz\FormatCode\Commands;
 
-use Illuminate\Console\Command;
-use Aodamuz\FormatCode\FormatCode;
-
 class AllCommand extends Command {
 	/**
 	 * The name and signature of the console command.
@@ -26,13 +23,15 @@ class AllCommand extends Command {
 	 * @return void
 	 */
 	public function handle() {
-		if (!$this->confirm('Do you want to format all Laravel files?', true))
-			return;
+		$directories = config('format-code.laravel', [
+			'app',
+			'config',
+			'database',
+			'routes',
+			'tests',
+			'vendor/laravel',
+		]);
 
-		$count = $this->laravel->make(
-			FormatCode::class
-		)->laravel();
-
-		$this->info("{$count} files have been successfully formatted.");
+		$this->scan($directories);
 	}
 }

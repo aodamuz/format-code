@@ -3,80 +3,27 @@
 namespace Aodamuz\FormatCode;
 
 use Illuminate\Support\Str;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 class FormatCode {
-	use ParsePath;
-
 	/**
-	 * Finder instance.
+	 * Run format.
 	 *
-	 * @var \Symfony\Component\Finder\Finder
-	 */
-	protected $finder;
-
-	/**
-	 * Create a new FormatCode instance.
-	 *
-	 * @param \Symfony\Component\Finder\Finder $finder
-	 *
-	 * @return void
-	 */
-	public function __construct(Finder $finder) {
-		$this->finder = $finder;
-	}
-
-	/**
-	 * Format all PHP files in Laravel project.
+	 * @param mixed $files
+	 * @param mixed $progressBar
 	 *
 	 * @return int
 	 */
-	public function laravel() {
-		return $this->scan([
-			base_path('app'),
-			base_path('config'),
-			base_path('database'),
-			base_path('routes'),
-			base_path('tests'),
-			base_path('vendor/laravel'),
-		]);
-	}
-
-	/**
-	 * Scan specific directories.
-	 *
-	 * @param array|string $path
-	 *
-	 * @return int
-	 */
-	public function scan($path) {
+	public function run($files, $progressBar = null) {
 		$count = 0;
-		$files = $this->finder->in(
-			$this->parsePath($path)
-		)->exclude([
-			'node_modules',
-		])->files()->name(['*.stub', '*.php']);
 
-		foreach ($files as $file)
+		foreach ($files as $file) {
 			$count += $this->format($file);
 
-		return $count;
-	}
-
-	/**
-	 * Format specific files.
-	 *
-	 * @param array|string $path
-	 *
-	 * @return int
-	 */
-	public function file($path) {
-		$count = 0;
-		$files = (array) $this->parsePath($path);
-
-		foreach ($files as $file)
-			$count += $this->format($file);
+			if (!is_null($progressBar)) {
+				$progressBar->advance();
+			}
+		}
 
 		return $count;
 	}
@@ -86,7 +33,7 @@ class FormatCode {
 	 *
 	 * @param string|\Symfony\Component\Finder\SplFileInfo
 	 *
-	 * @return mixed
+	 * @return int
 	 */
 	protected function format($path) {
 		if ($path instanceof SplFileInfo)
@@ -97,15 +44,15 @@ class FormatCode {
 
 		$code = file_get_contents($path);
 
-		$code = str_replace("    ", "\t", $code);
+		$code = str_replace(str_repeat(" ", 4), "\t", $code);
 		$code = str_replace("\r\n", "\n", $code);
+
 		$code = str_replace(["\n{\n", "\n\t{\n", "\r\n{\r\n", "\r\n\t{\r\n"], " {\n", $code);
-		$code = str_replace(' array()', " []", $code);
 
 		if (preg_match('/\nuse (.*?);\n/', $code))
 			$code = $this->sortImportsByLength($code);
 
-		return file_put_contents($path, $code) > 0 ? 1 : 0;
+		return (bool) file_put_contents($path, $code) ? 1 : 0;
 	}
 
 	/**

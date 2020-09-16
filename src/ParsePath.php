@@ -8,14 +8,14 @@ trait ParsePath {
 	 *
 	 * @param string|array $path
 	 *
-	 * @return mixed
+	 * @return string|array
 	 */
 	protected function parsePath($path) {
 		if (is_array($path)) {
 			$array = [];
 
-			foreach ($path as $dir) {
-				$array[] = $this->parsePath($dir);
+			foreach ($path as $file) {
+				$array[] = $this->parsePath($file);
 			}
 
 			return $array;
@@ -28,5 +28,7 @@ trait ParsePath {
 		if (file_exists($path = base_path($path))) {
 			return $path;
 		}
+
+		return $path;
 	}
 }

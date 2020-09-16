@@ -2,9 +2,7 @@
 
 namespace Aodamuz\FormatCode\Commands;
 
-use Illuminate\Console\Command;
 use Aodamuz\FormatCode\ParsePath;
-use Aodamuz\FormatCode\FormatCode;
 
 class FileCommand extends Command {
 	use ParsePath;
@@ -30,21 +28,21 @@ class FileCommand extends Command {
 	 * @return void
 	 */
 	public function handle() {
-		$paths = $this->parsePath(explode(',', $this->argument('path')));
+		$files = $this->parsePath(explode(',', $this->argument('path')));
 
-		foreach ($paths as $path) {
-			if (!is_file($path)) {
-				return $this->error("The file {$path} does not exist.");
+		foreach ($files as $file) {
+			if (!is_file($file)) {
+				return $this->error("The file {$file} does not exist.");
 			}
 
-			if (!is_readable($path)) {
-				$this->error("The file {$path} cannot be read.");
+			if (!is_readable($file)) {
+				$this->error("The file {$file} cannot be read.");
 
 				return;
 			}
 
-			if (!is_writable($path)) {
-				$this->error("Cannot write to {$path}.");
+			if (!is_writable($file)) {
+				$this->error("Cannot write to {$file}.");
 
 				return;
 			}
@@ -53,9 +51,7 @@ class FileCommand extends Command {
 		if (!$this->confirm("Format all files?", true))
 			return;
 
-		$count = $this->laravel->make(
-			FormatCode::class
-		)->file($paths);
+		$count = $this->formatterInstance()->run($files);
 
 		$this->info("{$count} files have been successfully formatted.");
 	}
